@@ -536,7 +536,7 @@ await Promise.all(
 const DF_JSON_FILE = path.resolve(ROOT, 'df_comp.json')
 if (!(await exists(DF_JSON_FILE))) {
   console.debug('compiling dataform')
-  await exec(`npx dataform compile --json > ${DF_JSON_FILE}`)
+  await exec(`npx dataform compile --json > ${DF_JSON_FILE}`, { cwd: ROOT })
 }
 // eslint-disable-next-line import/no-dynamic-require
 const DATAFORM_COMPILATION_JSON = require(DF_JSON_FILE)
