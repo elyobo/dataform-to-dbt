@@ -9,6 +9,7 @@ A tool to assist in migrating from [Dataform](https://dataform.co/) to [DBT](htt
 - Source and model definitions are output in schema specific model and source `.yml`.
 - Model documentation is included in the model `.yml`.
 - Dataform [auto-generated assertions](https://docs.dataform.co/guides/assertions#auto-generated-assertions) (`uniqueKey`, `nonNull`, and `rowConditions`) are migrated to appropriate tests in the model `.yml`, using built in tests where possible and [`dbt_utils`](https://github.com/dbt-labs/dbt-utils) tests where not.
+- Dataform [manual assertions](https://docs.dataform.co/guides/assertions#manual-assertions) are migrated DBT [singular tests](https://docs.getdbt.com/docs/build/tests#singular-tests).
 
 ## What might work
 
@@ -16,8 +17,6 @@ A tool to assist in migrating from [Dataform](https://dataform.co/) to [DBT](htt
 - DBT doesn't support generating temporary tables in the model header as you can with dataform pre-operations (not with a `ref()`, anyway), so these are extracted to their own tables and the references updated.
 
 ## What doesn't work
-
-- Dataform [manual assertions](https://docs.dataform.co/guides/assertions#manual-assertions) are not migrated yet.
 
 # :warning: Disclaimer
 
