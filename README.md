@@ -11,17 +11,18 @@ A tool to assist in migrating from [Dataform](https://dataform.co/) to [DBT](htt
 - Dataform [auto-generated assertions](https://docs.dataform.co/guides/assertions#auto-generated-assertions) (`uniqueKey`, `nonNull`, and `rowConditions`) are migrated to appropriate tests in the model `.yml`, using built in tests where possible and [`dbt_utils`](https://github.com/dbt-labs/dbt-utils) tests where not.
 - Dataform [manual assertions](https://docs.dataform.co/guides/assertions#manual-assertions) are migrated DBT [singular tests](https://docs.getdbt.com/docs/build/tests#singular-tests).
 - View materialisations are set per model, with the assumption that the default will be tables.
+- BigQuery clustering config is migrated; see "what might work" for info on partitioning.
 
 ## What might work
 
 - Dataform [includes](https://docs.dataform.co/guides/javascript/includes) are out of scope to ever work completely, as they can do most things javascript can and translating that to DBT's jinja based macros just isn't going to happen. That said, where the include is a simple string, a [DBT macro](https://docs.getdbt.com/docs/build/jinja-macros) will be produced and inserted in the right location so that it's still a single replacement (instead of inlining the replacement and duplicating it at the DBT version). Includes that call functions are _not_ supported, but a stub macro will be produced and inserted in the right place and a warning produced so that they can be manually adjusted (by amending the implementation to actually work, and by amending all the invocations to pass appropriate arguments).
 - DBT doesn't support generating temporary tables in the model header as you can with dataform pre-operations (not with a `ref()`, anyway), so these are extracted to their own tables and the references updated.
 - Table materialisations aren't set (except for extracted temp tables), views are - check the default materialisations set in the DBT config and adjust as necessary.
+- BigQuery paritioning config is migrated, but the data type inferred is a guess and may need tweaking, if a guess can be made at all.
 
 ## What doesn't work
 
 - No support for incremental datasets, these will require manual adjustments.
-- No support for clustering, partitioning.
 - Tags are not migrated.
 
 # :warning: Disclaimer
