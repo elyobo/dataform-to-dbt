@@ -10,6 +10,7 @@ A tool to assist in migrating from [Dataform](https://dataform.co/) to [DBT](htt
 - Model documentation is included in the model `.yml`.
 - Dataform [auto-generated assertions](https://docs.dataform.co/guides/assertions#auto-generated-assertions) (`uniqueKey`, `nonNull`, and `rowConditions`) are migrated to appropriate tests in the model `.yml`, using built in tests where possible and [`dbt_utils`](https://github.com/dbt-labs/dbt-utils) tests where not.
 - Dataform [manual assertions](https://docs.dataform.co/guides/assertions#manual-assertions) are migrated DBT [singular tests](https://docs.getdbt.com/docs/build/tests#singular-tests).
+- View materialisations are set per model, with the assumption that the default will be tables.
 
 ## What might work
 
@@ -19,7 +20,6 @@ A tool to assist in migrating from [Dataform](https://dataform.co/) to [DBT](htt
 
 ## What doesn't work
 
-- View vs table materializations are not supported.
 - No support for incremental datasets, these will require manual adjustments.
 - No support for clustering, partitioning.
 - Tags are not migrated.

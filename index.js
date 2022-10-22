@@ -126,6 +126,33 @@ const writeFile = async (dir, file, content) => {
   await fs.writeFile(path.resolve(dir, file), content)
 }
 
+// Hopefully adequate python output
+const quote = (value) => {
+  if (value === null) return 'None'
+  switch (typeof value) {
+    case 'number':
+      return value
+    case 'string':
+      return `'${value.replace(/'/g, "\\'")}'`
+    case 'boolean':
+      return value ? 'True' : 'False'
+    default:
+      throw new Error(
+        `Unsupported data type ${typeof value} writing config header`,
+      )
+  }
+}
+
+// Write a config header
+const buildConfigHeader = (config) => {
+  const options = Object.entries(config)
+    .filter(([, v]) => v !== undefined)
+    .map(([k, v]) => `    ${k} = ${quote(v)},`)
+    .join('\n')
+
+  return options ? `{{\n  config(\n${options}\n  )\n}}\n\n` : ''
+}
+
 // Convert dataform definitions to DBT sources YAML
 const declarationsToDbtSources = ({ declarations }) =>
   YAML.stringify({
@@ -618,7 +645,9 @@ await Promise.all([
         file: { base },
         dir: { name: schema },
         sql,
+        raw: { type },
       } = config
+
       const name = adjustName(schema, base)
       const src = await asyncPipe(
         replaceTempTables(schema, base),
@@ -635,9 +664,13 @@ await Promise.all([
       await ensureDir(destDir)
 
       const dest = path.resolve(destDir, `${name}.sql`)
-      const configHeader =
-        defaultSchema === schema ? '' : `{{ config(schema='${schema}') }}\n\n`
-      multiSchema = multiSchema || Boolean(configHeader)
+
+      const dbtConfig = {
+        materialized: type === 'table' ? undefined : type,
+        schema: defaultSchema === schema ? undefined : schema,
+      }
+      multiSchema = multiSchema || Boolean(dbtConfig.schema)
+      const configHeader = buildConfigHeader(dbtConfig)
       await fs.writeFile(dest, `${configHeader}${src}`)
     }),
 ])
