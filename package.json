@@ -6,7 +6,10 @@
   "main": "index.js",
   "bin": "./index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "preversion": "eslint .",
+    "lint": "eslint .",
+    "prepare": "husky install"
   },
   "keywords": [
     "dbt",
@@ -14,9 +17,25 @@
   ],
   "author": "Liam O'Boyle <liam@elyobo.net>",
   "license": "MIT",
+  "engines": {
+    "node": ">= 14.8"
+  },
   "dependencies": {
     "@dataform/core": "^2.0.3",
     "commander": "^9.4.1",
     "yaml": "^2.1.3"
+  },
+  "devDependencies": {
+    "eslint": "^8.26.0",
+    "eslint-config-airbnb-base": "^15.0.0",
+    "eslint-config-prettier": "^8.5.0",
+    "eslint-plugin-import": "^2.26.0",
+    "eslint-plugin-n": "^15.3.0",
+    "husky": "^8.0.1",
+    "lint-staged": "^13.0.3",
+    "prettier": "2.7.1"
+  },
+  "lint-staged": {
+    "*.{js,css,md}": ["prettier --write", "eslint"]
   }
 }
