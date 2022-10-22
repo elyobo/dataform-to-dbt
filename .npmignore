@@ -1,5 +1,8 @@
-# Ignore everything!
+# Ignore everything! An include list is cleaner than an exclude list.
 *
 
 # Except for these
-!/index.js
+!/src/**/*.js
+
+# But no tests
+/src/**/*.test.js

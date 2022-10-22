@@ -1,0 +1,12 @@
+name: Block Fixup
+
+on: [pull_request]
+
+jobs:
+  block-fixup:
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v3
+    - name: Block fixup commit merge
+      uses: 13rac1/block-fixup-merge-action@v2.0.0
