@@ -1,6 +1,6 @@
 {
   "name": "dataform-to-dbt",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "type": "module",
   "description": "Tool to assist in migrating from dataform to dbt",
   "homepage": "https://github.com/elyobo/dataform-to-dbt/#readme",
@@ -46,6 +46,9 @@
   },
   "lint-staged": {
     "*.{css,md}": "prettier --write",
-    "*.js": ["prettier --write", "eslint"]
+    "*.js": [
+      "prettier --write",
+      "eslint"
+    ]
   }
 }
