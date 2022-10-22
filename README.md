@@ -4,7 +4,7 @@ A tool to assist in migrating from [Dataform](https://dataform.co/) to [DBT](htt
 
 ## What works
 
-- Models are converted, with Dataform `${ref()}` calls replaced by appropriate DBT `{{ ref() }}` and `{{ source }}` calls.
+- Models are converted, with Dataform `${ref()}` calls replaced by appropriate DBT `{{ ref() }}` and `{{ source() }}` calls.
 - DBT currently doesn't support namespacing, so model names must be unique; `dataform-to-dbt` supports renaming tables as part of the migration, correcting references along the way.
 - Source and model definitions are output in schema specific model and source `.yml`.
 - Model documentation is included in the model `.yml`.
