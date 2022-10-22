@@ -129,6 +129,7 @@ const writeFile = async (dir, file, content) => {
 // Hopefully adequate python output
 const quote = (value) => {
   if (value === null) return 'None'
+  if (Array.isArray(value)) return `[${value.map(quote).join(', ')}]`
   switch (typeof value) {
     case 'number':
       return value
@@ -136,6 +137,10 @@ const quote = (value) => {
       return `'${value.replace(/'/g, "\\'")}'`
     case 'boolean':
       return value ? 'True' : 'False'
+    case 'object':
+      return `{${Object.entries(value)
+        .map((entry) => entry.map(quote).join(': '))
+        .join(', ')}}`
     default:
       throw new Error(
         `Unsupported data type ${typeof value} writing config header`,
@@ -151,6 +156,46 @@ const buildConfigHeader = (config) => {
     .join('\n')
 
   return options ? `{{\n  config(\n${options}\n  )\n}}\n\n` : ''
+}
+
+// Parse a dataform partition by clause to get a dbt version
+const parsePartitionBy = (value) => {
+  if (!value) return undefined
+  const trunc = value.match(
+    /^(date|datetime|timestamp)_trunc\(([^,]+),\s*([^)]+)\)$/i,
+  )
+  if (trunc) {
+    const [, dataType, field, granularity] = trunc
+    return {
+      field,
+      data_type: dataType.toLowerCase(),
+      granularity: granularity.toLowerCase(),
+    }
+  }
+
+  const date = value.match(/^date\(([^)]+)\)$/i)
+  if (date) return { field: date[1], data_type: 'date', granularity: 'day' }
+
+  // RANGE_BUCKET(<integer_column>, GENERATE_ARRAY(0, 1000000, 1000))"
+  const int = value.match(
+    /^range_bucket\(([^,]+),\s*generate_array\((\d+),\s*(\d+),\s*(\d+)$/i,
+  )
+  if (int) {
+    const [, field] = int
+    const [start, end, interval] = int.slice(2).map(Number)
+
+    return {
+      field,
+      data_type: 'int64',
+      range: {
+        start,
+        end,
+        interval,
+      },
+    }
+  }
+
+  throw new Error(`Unable to parse partitioning clause: ${value}`)
 }
 
 // Convert dataform definitions to DBT sources YAML
@@ -642,10 +687,11 @@ await Promise.all([
     .filter((c) => !['operation', 'assertion'].includes(c.raw.type))
     .map(async (config) => {
       const {
-        file: { base },
+        config: { bigquery: { clusterBy, partitionBy } = {} },
         dir: { name: schema },
-        sql,
+        file: { base },
         raw: { type },
+        sql,
       } = config
 
       const name = adjustName(schema, base)
@@ -666,8 +712,10 @@ await Promise.all([
       const dest = path.resolve(destDir, `${name}.sql`)
 
       const dbtConfig = {
-        materialized: type === 'table' ? undefined : type,
         schema: defaultSchema === schema ? undefined : schema,
+        materialized: type === 'table' ? undefined : type,
+        partitionBy: parsePartitionBy(partitionBy),
+        clusterBy,
       }
       multiSchema = multiSchema || Boolean(dbtConfig.schema)
       const configHeader = buildConfigHeader(dbtConfig)
