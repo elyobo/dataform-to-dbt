@@ -92,6 +92,7 @@ const RENAMED = chunkify(rename, 2).reduce((acc, [from, to]) => {
 }, {})
 
 const DF_INCLUDES_DIR = path.resolve(ROOT, 'includes')
+const DBT_TESTS_DIR = path.resolve(ROOT, 'tests')
 const DBT_MODELS_DIR = path.resolve(ROOT, 'models')
 const DBT_MACROS_DIR = path.resolve(ROOT, 'macros')
 const DBT_SOURCES_FILE = path.resolve(DBT_MODELS_DIR, '_sources.yml')
@@ -401,12 +402,18 @@ const cleanSqlBlock = (block) => {
  * to collect the config, but parses reliably and provides sqlx with blocks like
  * config and pre-operations removed more accurately than regex extraction does.
  */
-const extractConfigs = async ({ operations, tables }, sources) => {
+const extractConfigs = async ({ assertions, operations, tables }, sources) => {
   const includes = await resolveIncludes()
   const extractor = parseExtractor(includes)
   const base = [
     ...tables,
     ...operations.map((op) => ({ ...op, type: 'operation' })),
+    ...assertions
+      // Only manual assertions
+      .filter(
+        (assert) => !/(rowConditions|uniqueKey_[0-9]+)$/.test(assert.name),
+      )
+      .map((assert) => ({ ...assert, type: 'assertion' })),
   ]
   const parsed = await Promise.all(
     base.map((table) => {
@@ -519,7 +526,7 @@ const replaceUdfSchemaUsage = (replacements) => {
 
 // Clean out models and macros first
 await Promise.all(
-  [DBT_MODELS_DIR, DBT_MACROS_DIR].map(async (dir) => {
+  [DBT_MODELS_DIR, DBT_MACROS_DIR, DBT_TESTS_DIR].map(async (dir) => {
     if (await exists(dir)) await fs.rm(dir, { recursive: true })
     return ensureDir(dir)
   }),
@@ -586,9 +593,26 @@ await Promise.all(
     }),
 )
 
-await Promise.all(
-  configs
-    .filter((c) => c.raw.type !== 'operation')
+await Promise.all([
+  ...configs
+    .filter((c) => c.raw.type === 'assertion')
+    .map(async (config) => {
+      const {
+        file: { base: name },
+        dir: { name: schema },
+        sql,
+      } = config
+      const src = await asyncPipe(
+        replaceTempTables(schema, name),
+        replaceUdfSchemaUsage(udfReplacements),
+        (x) => x.trim(),
+      )(sql)
+
+      const dest = path.resolve(DBT_TESTS_DIR, `${name}.sql`)
+      await fs.writeFile(dest, src)
+    }),
+  ...configs
+    .filter((c) => !['operation', 'assertion'].includes(c.raw.type))
     .map(async (config) => {
       const {
         file: { base },
@@ -616,7 +640,7 @@ await Promise.all(
       multiSchema = multiSchema || Boolean(configHeader)
       await fs.writeFile(dest, `${configHeader}${src}`)
     }),
-)
+])
 
 if (multiSchema) {
   console.log(
