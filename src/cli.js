@@ -44,15 +44,19 @@ program
     '-r, --rename <replacements...>',
     'a set of key/value replacements, e.g. myschema.mytable yourtable to rename the table',
   )
+  .option('-i, --ignore-tags <tags...>', 'a set of tags to ignore')
   .version(PACKAGE.version)
   .parse()
 
 const {
   directory: ROOT,
+  ignoreTags = [],
   profiles: PROFILES,
   rename = [],
   template: TEMPLATE,
 } = program.opts()
+
+const IGNORE_TAGS = new Set(ignoreTags)
 
 if (!(await exists(TEMPLATE))) {
   console.error(`Template file ${TEMPLATE} does not exist or is not readable.`)
@@ -149,10 +153,19 @@ await Promise.all(
 await Promise.all([
   ...configs
     .filter((c) => c.raw.type === 'assertion')
-    .map(writeTest(ROOT, udfReplacements)),
+    .map(writeTest(ROOT, udfReplacements, IGNORE_TAGS)),
   ...configs
     .filter((c) => !['operation', 'assertion'].includes(c.raw.type))
-    .map(writeModel(ROOT, udfReplacements, adjustName, flags, DEFAULT_SCHEMA)),
+    .map(
+      writeModel(
+        ROOT,
+        udfReplacements,
+        adjustName,
+        flags,
+        DEFAULT_SCHEMA,
+        IGNORE_TAGS,
+      ),
+    ),
 ])
 
 if (flags.multiSchema) {

@@ -384,26 +384,37 @@ export const writeOperation =
 /**
  * Write a test.
  */
-export const writeTest = (root, udfReplacements) => async (config) => {
-  const {
-    file: { base: name },
-    dir: { name: schema },
-    sql,
-  } = config
-  const src = await asyncPipe(
-    replaceTempTables(root, schema, name),
-    replaceUdfSchemaUsage(udfReplacements),
-    (x) => x.trim(),
-  )(sql)
+export const writeTest =
+  (root, udfReplacements, ignoreTags) => async (config) => {
+    const {
+      file: { base: name },
+      dir: { name: schema },
+      raw: { tags: _tags = [] },
+      sql,
+    } = config
+    const src = await asyncPipe(
+      replaceTempTables(root, schema, name),
+      replaceUdfSchemaUsage(udfReplacements),
+      (x) => x.trim(),
+    )(sql)
 
-  await writeFile(path.resolve(root, 'tests'), `${name}.sql`, `${src}\n`)
-}
+    const tags = _tags.filter((tag) => !ignoreTags.has(tag))
+    const configHeader = buildConfigHeader({
+      tags: tags.length ? tags : undefined,
+    })
+
+    await writeFile(
+      path.resolve(root, 'tests'),
+      `${configHeader}${name}.sql`,
+      `${src}\n`,
+    )
+  }
 
 /**
  * Write a model.
  */
 export const writeModel =
-  (root, udfReplacements, adjustName, flags, defaultSchema) =>
+  (root, udfReplacements, adjustName, flags, defaultSchema, ignoreTags) =>
   async (config) => {
     const {
       config: {
@@ -416,7 +427,7 @@ export const writeModel =
       },
       dir: { name: schema },
       file: { base },
-      raw: { type },
+      raw: { tags: _tags = [], type },
       sql,
     } = config
 
@@ -432,9 +443,11 @@ export const writeModel =
       process.exit(1)
     }
 
+    const tags = _tags.filter((tag) => !ignoreTags.has(tag))
     const dbtConfig = {
       schema: defaultSchema === schema ? undefined : schema,
       materialized: type === 'table' ? undefined : type,
+      tags: tags.length ? tags : undefined,
       partition_by: parsePartitionBy(partitionBy),
       require_partition_filter: partitionBy
         ? requirePartitionFilter
