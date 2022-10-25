@@ -400,7 +400,7 @@ export const writeTest = (root, udfReplacements) => async (config) => {
  * Write a model.
  */
 export const writeModel =
-  (root, udfReplacements, adjustName, multiSchema, defaultSchema) =>
+  (root, udfReplacements, adjustName, flags, defaultSchema) =>
   async (config) => {
     const {
       config: {
@@ -442,7 +442,7 @@ export const writeModel =
       cluster_by: clusterBy,
     }
     // eslint-disable-next-line no-param-reassign
-    multiSchema = multiSchema || Boolean(dbtConfig.schema)
+    flags.multiSchema = flags.multiSchema || Boolean(dbtConfig.schema)
     const configHeader = buildConfigHeader(dbtConfig)
     await writeFile(
       path.resolve(root, 'models', schema),
