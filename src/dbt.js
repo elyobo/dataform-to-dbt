@@ -42,6 +42,31 @@ const GENERATE_SCHEMA_NAME = `
 {% macro generate_schema_name(custom_schema_name, node) -%}
     {{ generate_schema_name_for_env(custom_schema_name, node) }}
 {%- endmacro %}
+
+{# Prefix non-production tables with their schema #}
+{% macro generate_alias_name(custom_alias_name=none, node=none) -%}
+    {# Default handling to calculate table name #}
+    {%- if custom_alias_name is none -%}
+        {%- set node_name = node.name -%}
+    {%- else -%}
+        {%- set node_name = custom_alias_name | trim -%}
+    {%- endif -%}
+
+    {%- if target.name == 'prod' -%}
+        {# No prefix for prod #}
+        {{ node_name }}
+    {%- else -%}
+        {#- Get the custom schema name -#}
+        {%- set schema = node.unrendered_config.schema | trim %}
+
+        {#- Highlight missing schemas, _ prefix to sort early -#}
+        {%- if not schema -%}
+            {%- set schema = '_NO_SCHEMA' %}
+        {%- endif -%}
+
+        {{ schema ~ "__" ~ node_name }}
+    {%- endif -%}
+{%- endmacro %}
 `.trim()
 
 export const writeGenerateSchemaName = async (root) =>

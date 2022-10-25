@@ -13,6 +13,7 @@ A tool to assist in migrating from [Dataform](https://dataform.co/) to [DBT](htt
 - View materialisations are set per model, with the assumption that the default will be tables.
 - BigQuery clustering config is migrated; see "what might work" for info on partitioning.
 - Tags are migrated.
+- Projects using multiple schemas automatically have appropriate macros set up to rewrite these appropriately when not writing to the `prod` target (written to the target dataset - use environment variables to set this in `profiles.yml` on a per-developer basis, `direnv` recommended - with the original schema name prepended, e.g. `developer_schema.original_schema__original_table`).
 
 ## What might work
 
