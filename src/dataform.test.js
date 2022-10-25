@@ -4,7 +4,7 @@ describe('parsePartitionBy()', () => {
   it.each([
     [
       'DATE(some_field)',
-      { field: 'some_field', data_type: 'date', granularity: 'day' },
+      { field: 'DATE(some_field)', data_type: 'date', granularity: 'day' },
     ],
     [
       'DATETIME_TRUNC(some_field, HOUR)',
