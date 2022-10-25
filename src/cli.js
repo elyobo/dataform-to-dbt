@@ -128,9 +128,9 @@ await Promise.all([
   // Extract all models docs and tests and write to appropriate files
   ...(
     await tablesToDbtModels(configs, adjustName)
-  ).map(async ({ schema, models }) => {
-    const dir = path.resolve(DBT_MODELS_DIR, schema)
-    return writeFile(dir, `_${schema}__models.yml`, models)
+  ).map(async ({ directory, models }) => {
+    const dir = path.resolve(DBT_MODELS_DIR, directory)
+    return writeFile(dir, `_${directory}__models.yml`, models)
   }),
 ])
 
