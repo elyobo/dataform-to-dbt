@@ -374,7 +374,7 @@ export const writeOperation =
     await writeFile(
       path.resolve(root, 'macros'),
       `${name}.sql`,
-      `{% macro ${macroName}() %}\n${src}\n{% endmacro %}`,
+      `{% macro ${macroName}() %}\n${src}\n{% endmacro %}\n`,
     )
   }
 
@@ -393,7 +393,7 @@ export const writeTest = (root, udfReplacements) => async (config) => {
     (x) => x.trim(),
   )(sql)
 
-  await writeFile(path.resolve(root, 'tests'), `${name}.sql`, src)
+  await writeFile(path.resolve(root, 'tests'), `${name}.sql`, `${src}\n`)
 }
 
 /**
@@ -447,6 +447,6 @@ export const writeModel =
     await writeFile(
       path.resolve(root, 'models', schema),
       `${name}.sql`,
-      `${configHeader}${src}`,
+      `${configHeader}${src}\n`,
     )
   }
