@@ -12,6 +12,7 @@ A tool to assist in migrating from [Dataform](https://dataform.co/) to [DBT](htt
 - Dataform [manual assertions](https://docs.dataform.co/guides/assertions#manual-assertions) are migrated DBT [singular tests](https://docs.getdbt.com/docs/build/tests#singular-tests).
 - View materialisations are set per model, with the assumption that the default will be tables.
 - BigQuery clustering config is migrated; see "what might work" for info on partitioning.
+- Tags are migrated.
 
 ## What might work
 
@@ -23,7 +24,6 @@ A tool to assist in migrating from [Dataform](https://dataform.co/) to [DBT](htt
 ## What doesn't work
 
 - No support for incremental datasets, these will require manual adjustments.
-- Tags are not migrated.
 
 # :warning: Disclaimer
 

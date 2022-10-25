@@ -388,6 +388,7 @@ export const writeTest = (root, udfReplacements) => async (config) => {
   const {
     file: { base: name },
     dir: { name: schema },
+    raw: { tags = [] },
     sql,
   } = config
   const src = await asyncPipe(
@@ -395,8 +396,15 @@ export const writeTest = (root, udfReplacements) => async (config) => {
     replaceUdfSchemaUsage(udfReplacements),
     (x) => x.trim(),
   )(sql)
+  const configHeader = buildConfigHeader({
+    tags: tags.length ? tags : undefined,
+  })
 
-  await writeFile(path.resolve(root, 'tests'), `${name}.sql`, `${src}\n`)
+  await writeFile(
+    path.resolve(root, 'tests'),
+    `${configHeader}${name}.sql`,
+    `${src}\n`,
+  )
 }
 
 /**
@@ -416,7 +424,7 @@ export const writeModel =
       },
       dir: { name: schema },
       file: { base },
-      raw: { type },
+      raw: { tags = [], type },
       sql,
     } = config
 
@@ -435,6 +443,7 @@ export const writeModel =
     const dbtConfig = {
       schema: defaultSchema === schema ? undefined : schema,
       materialized: type === 'table' ? undefined : type,
+      tags: tags.length ? tags : undefined,
       partition_by: parsePartitionBy(partitionBy),
       require_partition_filter: partitionBy
         ? requirePartitionFilter
