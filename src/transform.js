@@ -52,7 +52,7 @@ export const declarationsToSourceMap = ({ declarations }) =>
  */
 export const tablesToDbtModels = async (configs, adjustName) => {
   const schemas = configs
-    .filter((config) => config.raw.type !== 'operation')
+    .filter((config) => !['operation', 'assertion'].includes(config.raw.type))
     .reduce((acc, config) => {
       const { schema } = config.raw.target
       if (!acc[schema]) acc[schema] = []
