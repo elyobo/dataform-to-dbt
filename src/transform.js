@@ -51,17 +51,20 @@ export const declarationsToSourceMap = ({ declarations }) =>
  * Convert dataform tables to DBT model definitions
  */
 export const tablesToDbtModels = async (configs, adjustName) => {
-  const schemas = configs
+  const directories = configs
     .filter((config) => !['operation', 'assertion'].includes(config.raw.type))
     .reduce((acc, config) => {
-      const { schema } = config.raw.target
-      if (!acc[schema]) acc[schema] = []
-      acc[schema].push(config)
+      const dirPath = path.dirname(config.fileName)
+      //  Handle models in the root definitions directoory
+      const dirname = dirPath.includes('/') ? path.basename(dirPath) : ''
+
+      if (!acc[dirname]) acc[dirname] = []
+      acc[dirname].push(config)
       return acc
     }, {})
 
-  return Object.entries(schemas).map(([schema, tables]) => ({
-    schema,
+  return Object.entries(directories).map(([directory, tables]) => ({
+    directory,
     models: YAML.stringify({
       version: 2,
       models: tables.map((config) => {
@@ -138,7 +141,7 @@ export const tablesToDbtModels = async (configs, adjustName) => {
         )
 
         return {
-          name: adjustName(schema, target.name),
+          name: adjustName(target.schema, target.name),
           description,
           tests: tableTests.length ? tableTests : undefined,
           columns,
