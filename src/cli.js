@@ -134,7 +134,9 @@ await Promise.all([
   }),
 ])
 
-let multiSchema = false // eslint-disable-line prefer-const
+const flags = {
+  multiSchema: false,
+}
 let onRunStart = []
 const udfReplacements = {}
 
@@ -150,18 +152,10 @@ await Promise.all([
     .map(writeTest(ROOT, udfReplacements)),
   ...configs
     .filter((c) => !['operation', 'assertion'].includes(c.raw.type))
-    .map(
-      writeModel(
-        ROOT,
-        udfReplacements,
-        adjustName,
-        multiSchema,
-        DEFAULT_SCHEMA,
-      ),
-    ),
+    .map(writeModel(ROOT, udfReplacements, adjustName, flags, DEFAULT_SCHEMA)),
 ])
 
-if (multiSchema) {
+if (flags.multiSchema) {
   console.log(
     `Multiple schemas detected, writing custom schema resolver; see https://docs.getdbt.com/docs/build/custom-schemas#an-alternative-pattern-for-generating-schema-names for information`,
   )
