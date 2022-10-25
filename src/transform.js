@@ -54,12 +54,9 @@ export const tablesToDbtModels = async (configs, adjustName) => {
   const directories = configs
     .filter((config) => !['operation', 'assertion'].includes(config.raw.type))
     .reduce((acc, config) => {
-      const dirPath = path.dirname(config.fileName)
-      //  Handle models in the root definitions directoory
-      const dirname = dirPath.includes('/') ? path.basename(dirPath) : ''
-
-      if (!acc[dirname]) acc[dirname] = []
-      acc[dirname].push(config)
+      const { destinationDir } = config
+      if (!acc[destinationDir]) acc[destinationDir] = []
+      acc[destinationDir].push(config)
       return acc
     }, {})
 
@@ -290,6 +287,9 @@ export const extractConfigs = async (
   return parsed.map((table) => ({
     ...table,
     config: table.compiled.sqlxConfig,
+    // Drop the root definitions directory if present to avoid it being shifted
+    // into a subdirectory.
+    destinationDir: table.dir.name === 'definitions' ? '' : table.dir.name,
     sql: getSql(table),
   }))
 }
@@ -424,24 +424,20 @@ export const writeModel =
           partitionExpirationDays,
           requirePartitionFilter,
         } = {},
+        schema: _schema,
       },
-      dir: { name: schema },
+      destinationDir,
       file: { base },
       raw: { tags: _tags = [], type },
       sql,
     } = config
-
+    const schema = _schema || defaultSchema
     const name = adjustName(schema, base)
     const src = await asyncPipe(
       replaceTempTables(root, schema, base),
       replaceUdfSchemaUsage(udfReplacements),
       (str) => str.trim(),
     )(sql)
-
-    if (!schema) {
-      console.error(`Unknown schema for ${name}`)
-      process.exit(1)
-    }
 
     const tags = _tags.filter((tag) => !ignoreTags.has(tag))
     const dbtConfig = {
@@ -461,7 +457,7 @@ export const writeModel =
     flags.multiSchema = flags.multiSchema || Boolean(dbtConfig.schema)
     const configHeader = buildConfigHeader(dbtConfig)
     await writeFile(
-      path.resolve(root, 'models', schema),
+      path.resolve(root, 'models', destinationDir),
       `${name}.sql`,
       `${configHeader}${src}\n`,
     )

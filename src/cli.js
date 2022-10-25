@@ -134,7 +134,8 @@ await Promise.all([
     await tablesToDbtModels(configs, adjustName)
   ).map(async ({ directory, models }) => {
     const dir = path.resolve(DBT_MODELS_DIR, directory)
-    return writeFile(dir, `_${directory}__models.yml`, models)
+    const prefix = directory ? `_${directory}_` : ''
+    return writeFile(dir, `${prefix}_models.yml`, models)
   }),
 ])
 
