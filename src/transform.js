@@ -230,7 +230,7 @@ export const extractConfigs = async (
   root,
   sources,
   adjustName,
-  { assertions, operations, tables },
+  { assertions = [], operations = [], tables = [] },
 ) => {
   const includes = await resolveIncludes(root)
   const extractor = parseExtractor(includes)
