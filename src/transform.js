@@ -150,7 +150,7 @@ export const tablesToDbtModels = async (configs, adjustName) => {
 
 // Replace macro placeholders from above
 const replaceMacroPlaceholders = (content) =>
-  content.replace(/--MACRO (.*) MACRO--/g, (_, macro) => `{{ ${macro} }}`)
+  content.replace(/--MACRO (.*?) MACRO--/g, (_, macro) => `{{ ${macro} }}`)
 
 const cleanSqlBlock = (block) => {
   const trimmed = replaceMacroPlaceholders(block?.trim() || '')
